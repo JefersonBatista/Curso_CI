@@ -19,5 +19,11 @@ jobs:
       - name: Build
         run: go build -v main.go
 
+      - name: Build DB
+        run: docker compose build postgres
+
+      - name: Create DB
+        run: docker compose up -d postgres
+
       - name: Test
         run: go test -v main_test.go
