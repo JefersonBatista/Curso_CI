@@ -2,7 +2,6 @@ name: Go Build
 run-name: Building a Go program
 on:
   push:
-    branches: ["Curso_2"]
 
 jobs:
   test:
@@ -57,4 +56,9 @@ jobs:
   docker:
     needs: build
     uses: ./.github/workflows/docker.yml
+    secrets: inherit
+
+  deploy:
+    needs: build
+    uses: ./.github/workflows/ec2.yml
     secrets: inherit

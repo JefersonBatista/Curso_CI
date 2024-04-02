@@ -1,0 +1,24 @@
+name: Continuous Delivery
+
+on:
+  workflow_call:
+  
+jobs:
+  ec2:
+    runs-on: ubuntu-latest
+    environment: Curso_CI
+    steps:
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: program
+          path: main
+      
+      - name: Deploy to Staging Server
+        uses: easingthemes/ssh-deploy@v2
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: /home/${{ secrets.REMOTE_USER }}
+          EXCLUDE: "postgres-data"
