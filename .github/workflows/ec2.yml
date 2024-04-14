@@ -15,7 +15,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: program
-          path: ./
 
       - name: Deploy to Staging Server
         uses: easingthemes/ssh-deploy@v2
