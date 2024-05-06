@@ -1,0 +1,19 @@
+name: Continuous Delivery
+
+on:
+  workflow_call:
+  
+jobs:
+  ecs:
+    runs-on: ubuntu-latest
+    environment: Curso_CI
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Download task definition
+        run: aws ecs describe-task-definition --task-definition API-Go_Task --query taskDefinition > task-definition.json
