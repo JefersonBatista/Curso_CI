@@ -31,4 +31,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: jefersonbatista/curso_ci:${{ github.ref_name }}
+          tags: jefersonbatista/curso_ci:${{ github.run_number }}

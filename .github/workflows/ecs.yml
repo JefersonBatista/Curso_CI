@@ -24,7 +24,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: API-Go
-          image: jefersonbatista/curso_ci:Curso_4
+          image: jefersonbatista/curso_ci:${{ github.run_number }}
           environment-variables: |
             DB_HOST=${{ secrets.DB_HOST }}
             DB_USER=${{ secrets.DB_USER }}
