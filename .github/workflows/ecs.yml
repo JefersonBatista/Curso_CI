@@ -44,5 +44,6 @@ jobs:
           cluster: API-Go
           wait-for-service-stability: true
 
-      # - name: Test deploy with a requisition
-      #   run: wget [Load Balancer address]
+      - name: Test deploy with a requisition
+        continue-on-error: true
+        run: sleep 30s ; wget http://api-go-lb-437514132.us-east-1.elb.amazonaws.com:8000/jeferson
