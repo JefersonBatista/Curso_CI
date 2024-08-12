@@ -58,6 +58,12 @@ jobs:
     uses: ./.github/workflows/docker.yml
     secrets: inherit
 
+  load-test:
+    needs: docker
+    if: ${{ github.ref_name == 'Curso_5-HML' }}
+    uses: ./.github/workflows/load-test.yml
+    secrets: inherit
+
   deploy:
     needs: docker
     uses: ./.github/workflows/ecs.yml
