@@ -1,0 +1,58 @@
+name: Deploy in ECS
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  ecs:
+    runs-on: ubuntu-latest
+    environment: Curso_CI
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Download task definition
+        run: aws ecs describe-task-definition --task-definition API-Go_Task --query taskDefinition > task-definition.json
+
+      - name: Backup task definition
+        run: cp task-definition.json task-definition.json.old
+
+      - name: Fill in the new image ID in AWS ECS
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: API-Go
+          image: jefersonbatista/curso_ci:${{ github.run_number }}
+          environment-variables: |
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            PORT=8000
+
+      - name: Deploy to Amazon ECS service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: API-Go_Service
+          cluster: API-Go
+          wait-for-service-stability: true
+
+      - name: Test deploy with a requisition
+        continue-on-error: true
+        run: echo "REQUEST=0" >> $GITHUB_ENV ; sleep 30s ; wget http://api-go-lb-437514132.us-east-1.elb.amazonaws.com:8000/jeferson || echo "REQUEST=1" >> $GITHUB_ENV
+
+      - name: Rollback Amazon ECS service
+        if: ${{ env.REQUEST != 0 }}
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: task-definition.json.old
+          service: API-Go_Service
+          cluster: API-Go
+          wait-for-service-stability: true

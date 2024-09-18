@@ -1,0 +1,9 @@
+name: prepare-db
+description: prepare the DB
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare DB
+      shell: bash
+      run: docker compose up -d postgres

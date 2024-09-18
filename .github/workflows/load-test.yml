@@ -1,0 +1,63 @@
+name: Load Test
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  ecs:
+    runs-on: ubuntu-latest
+    environment: Curso_CI
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - run: git clone https://github.com/JefersonBatista/Infra_CI
+
+      - name: HashiCorp - Setup Terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+
+      - run: terraform -chdir=Infra_CI/env/Homolog init
+
+      - run: terraform -chdir=Infra_CI/env/Homolog destroy -auto-approve
+
+      - run: terraform -chdir=Infra_CI/env/Homolog apply -auto-approve
+
+      - run: echo "$(terraform -chdir=Infra_CI/env/Homolog output -raw IP_alb)"
+        id: URL
+
+      - name: Python setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Install Locust
+        uses: insightsengineering/pip-action@v2
+        with:
+          packages: |
+            locust
+
+      - run: |
+          echo "from locust import HttpUser, TaskSet, task, between" >> locustfile.py
+          echo "" >> locustfile.py
+          echo "class UserTasks(TaskSet):" >> locustfile.py
+          echo "	@task(1)" >> locustfile.py
+          echo "	def index(self):" >> locustfile.py
+          echo '		self.client.get("/jeferson")' >> locustfile.py
+          echo "" >> locustfile.py
+          echo "class WebsiteUser(HttpUser):" >> locustfile.py
+          echo "	tasks = [UserTasks]" >> locustfile.py
+          echo "	wait_time = between(1, 5)" >> locustfile.py
+
+      - name: Run load test
+        run: sleep 60s ; locust -f locustfile.py --headless -u 50 -r 5 --run-time 60s -H http://${{ steps.URL.outputs.stdout }}
+
+      - name: Destroy test infrastructure
+        run: terraform -chdir=Infra_CI/env/Homolog destroy -auto-approve
+  
