@@ -58,3 +58,7 @@ jobs:
     uses: ./.github/workflows/docker.yml
     secrets: inherit
 
+  eks:
+    needs: docker
+    uses: ./.github/workflows/eks.yml
+    secrets: inherit
