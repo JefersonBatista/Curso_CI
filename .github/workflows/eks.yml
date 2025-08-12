@@ -50,3 +50,5 @@ jobs:
       - run: kubectl create secret generic dbname --from-literal=DBNAME=${{secrets.DB_NAME}}
       - run: kubectl delete secret port --ignore-not-found
       - run: kubectl create secret generic port --from-literal=PORT=8000
+
+      - run: kubectl apply -f Infra_CI_Kubernetes/go.yaml
